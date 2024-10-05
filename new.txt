@@ -1,0 +1,56 @@
+import requests
+
+# Replace with your values
+account_id = "YOUR_ACCOUNT_ID"
+api_key = "YOUR_API_KEY"
+location = "YOUR_LOCATION"  # e.g., "trial" or "westus"
+
+# Video URL or local file
+video_url = "https://path/to/your/video.mp4"
+
+# Upload video
+upload_url = f"https://{location}.api.videoindexer.ai/{account_id}/Videos?name=SampleVideo&videoUrl={video_url}&accessToken={api_key}"
+
+response = requests.post(upload_url)
+video_id = response.json()['id']
+print(f"Video uploaded. Video ID: {video_id}")
+
+
+
+import time
+
+# Poll for video processing status
+status_url = f"https://{location}.api.videoindexer.ai/{account_id}/Videos/{video_id}?accessToken={api_key}"
+
+while True:
+    response = requests.get(status_url)
+    status = response.json()['state']
+    print(f"Current status: {status}")
+    
+    if status == "Processed":
+        break
+    elif status == "Failed":
+        print("Video processing failed.")
+        exit(1)
+    
+    time.sleep(5)  # Wait before polling again
+
+print("Video processing completed.")
+
+
+
+# Get video insights
+insights_url = f"https://{location}.api.videoindexer.ai/{account_id}/Videos/{video_id}/Index?accessToken={api_key}"
+insights_response = requests.get(insights_url)
+insights = insights_response.json()
+
+# Example to print out scene information
+for scene in insights['videos'][0]['summarizedInsights']['scenes']:
+    start_time = scene['start']
+    end_time = scene['end']
+    print(f"Scene from {start_time} to {end_time}")
+
+    # Here you can add logic to extract clips based on your criteria
+
+
+
